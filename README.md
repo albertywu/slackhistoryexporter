@@ -7,9 +7,13 @@
 ### Usage
 `SLACK_API_TOKEN=<your token> python export.py`
 
-### Required Scopes 
+### App Setup
+You'll need to create a Slack app for this, with the following scope:
 ```
 channels:history
 channels:join
 users:read
 ```
+
+### Bonus
+Generate a pdf of user stats by running `python stats.py`
