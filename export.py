@@ -160,12 +160,10 @@ def main():
     total_channels = len(channels)
     print(f"Total channels: {total_channels}")
 
-    # print("Joining all public channels...")
-    # join_all_public_channels()
+    print("Joining all public channels...")
+    join_all_public_channels()
 
     for i, channel in enumerate(channels):
-        if channel['name'] != "albert-test":
-            continue
         print(f"Fetching messages from channel {i + 1}/{total_channels}: {channel['name']} (ID: {channel['id']})")
         messages = read_channel_messages(channel['id'])
 
