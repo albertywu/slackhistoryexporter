@@ -4,6 +4,8 @@ import csv
 from functools import wraps
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from datetime import datetime
+
 
 # Get the Slack API token from the environment variable
 SLACK_API_TOKEN = os.environ.get('SLACK_API_TOKEN')
@@ -45,7 +47,6 @@ def get_all_channels():
     return channels
 
 
-@retry_on_slack_error()
 def read_channel_messages(channel_id):
     messages = []
     next_cursor = None
@@ -57,7 +58,15 @@ def read_channel_messages(channel_id):
                 cursor=next_cursor,
                 limit=200
             )
-            messages.extend(result['messages'])
+            main_messages = result['messages']
+
+            for message in main_messages:
+                if 'replies' in message:
+                    thread_ts = message['ts']
+                    replies = get_thread_replies(channel_id, thread_ts)
+                    message['thread_messages'] = replies
+
+            messages.extend(main_messages)
             next_cursor = result.get('response_metadata', {}).get('next_cursor')
 
             if not next_cursor:
@@ -67,7 +76,45 @@ def read_channel_messages(channel_id):
             print(f"[read_channel_messages] Error: {e}")
             break
 
-    return messages
+    # Flatten the messages list and include threaded messages
+    all_messages = []
+    for message in messages:
+        all_messages.append(message)
+        if 'thread_messages' in message:
+            all_messages.extend(message['thread_messages'])
+
+    # Convert timestamps to datetime objects and sort messages by timestamp in reverse order
+    for message in all_messages:
+        message['ts'] = datetime.fromtimestamp(float(message['ts']))
+    all_messages.sort(key=lambda msg: msg['ts'], reverse=True)
+
+    return all_messages
+
+
+@retry_on_slack_error()
+def get_thread_replies(channel_id: str, thread_ts: str):
+    replies = []
+    next_cursor = None
+
+    while True:
+        try:
+            result = slack_client.conversations_replies(
+                channel=channel_id,
+                ts=thread_ts,
+                cursor=next_cursor,
+                limit=200
+            )
+            replies.extend(result['messages'][1:])  # Skip the first message, which is the parent message
+            next_cursor = result.get('response_metadata', {}).get('next_cursor')
+
+            if not next_cursor:
+                break
+
+        except SlackApiError as e:
+            print(f"[get_thread_replies] Error: {e}")
+            break
+
+    return replies
 
 
 @retry_on_slack_error()
@@ -92,13 +139,15 @@ def join_all_public_channels():
 def save_messages_to_csv(file_name, messages):
     with open(file_name, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(['timestamp', 'channel', 'username', 'message'])
+        writer.writerow(['timestamp', 'channel', 'username', 'location', 'message'])
 
         for message in messages:
+            location = 'thread' if 'thread_ts' in message and message['ts'] != datetime.fromtimestamp(float(message['thread_ts'])) else 'main'
             writer.writerow([
-                message['ts'],
+                message['ts'].strftime('%Y-%m-%d %H:%M:%S'),  # Format timestamp as a string
                 message['channel'],
                 message['username'],
+                location,
                 message['text']
             ])
 
