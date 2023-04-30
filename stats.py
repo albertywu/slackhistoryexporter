@@ -63,12 +63,13 @@ def generate_charts(csv_file, output_file):
 
     # Plot the charts
     with PdfPages(output_file) as pdf:
+        # Plot the Message Sentiment chart
         fig, ax = plt.subplots()
-        fig.subplots_adjust(bottom=0.2)  # Add room at bottom
-        user_message_counts.plot(kind='bar', ax=ax)
-        ax.set_title('Most Active Users')
-        ax.set_xlabel('User')
-        ax.set_ylabel('Number of Messages')
+        fig.subplots_adjust(bottom=0.3)  # Add room at bottom
+        channel_sentiments.plot(kind='bar', ax=ax)
+        ax.set_title('Message Sentiment by Channel')
+        ax.set_xlabel('Channel')
+        ax.set_ylabel('Sentiment Score')
         pdf.savefig()
         plt.close()
 
@@ -89,16 +90,6 @@ def generate_charts(csv_file, output_file):
         pdf.savefig()
         plt.close()
 
-        # Plot the Message Sentiment chart
-        fig, ax = plt.subplots()
-        fig.subplots_adjust(bottom=0.3)  # Add room at bottom
-        channel_sentiments.plot(kind='bar', ax=ax)
-        ax.set_title('Message Sentiment by Channel')
-        ax.set_xlabel('Channel')
-        ax.set_ylabel('Sentiment Score')
-        pdf.savefig()
-        plt.close()
-
         fig, ax = plt.subplots()
         fig.subplots_adjust(bottom=0.2)  # Add room at bottom
         word_freq_df = pd.DataFrame(word_frequencies, columns=['Word', 'Frequency'])
@@ -106,6 +97,15 @@ def generate_charts(csv_file, output_file):
         ax.set_title('Top Keywords')
         ax.set_xlabel('Keyword')
         ax.set_ylabel('Frequency')
+        pdf.savefig()
+        plt.close()
+
+        fig, ax = plt.subplots()
+        fig.subplots_adjust(bottom=0.2)  # Add room at bottom
+        user_message_counts.plot(kind='bar', ax=ax)
+        ax.set_title('Most Active Users')
+        ax.set_xlabel('User')
+        ax.set_ylabel('Number of Messages')
         pdf.savefig()
         plt.close()
 
