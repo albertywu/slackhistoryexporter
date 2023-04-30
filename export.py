@@ -61,7 +61,7 @@ def read_channel_messages(channel_id):
             main_messages = result['messages']
 
             for message in main_messages:
-                if 'replies' in message:
+                if 'reply_count' in message:
                     thread_ts = message['ts']
                     replies = get_thread_replies(channel_id, thread_ts)
                     message['thread_messages'] = replies
@@ -160,10 +160,12 @@ def main():
     total_channels = len(channels)
     print(f"Total channels: {total_channels}")
 
-    print("Joining all public channels...")
-    join_all_public_channels()
+    # print("Joining all public channels...")
+    # join_all_public_channels()
 
     for i, channel in enumerate(channels):
+        if channel['name'] != "albert-test":
+            continue
         print(f"Fetching messages from channel {i + 1}/{total_channels}: {channel['name']} (ID: {channel['id']})")
         messages = read_channel_messages(channel['id'])
 
