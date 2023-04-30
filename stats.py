@@ -1,6 +1,4 @@
-import os
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from textblob import TextBlob
@@ -12,14 +10,17 @@ import nltk
 nltk.download('punkt')
 nltk.download('stopwords')
 
+
 def read_csv_data(file_name):
     messages_df = pd.read_csv(file_name, parse_dates=['timestamp'])
     return messages_df
+
 
 def most_active_users_chart(messages_df):
     user_message_counts = messages_df['username'].value_counts()
     user_message_counts = user_message_counts[user_message_counts >= 5]
     return user_message_counts
+
 
 def most_active_channels_chart(messages_df):
     channel_message_counts = messages_df['channel'].value_counts()
@@ -31,6 +32,7 @@ def peak_activity_times_chart(messages_df):
     messages_df['hour'] = messages_df['timestamp'].dt.hour
     hourly_message_counts = messages_df.groupby('hour')['message'].count()
     return hourly_message_counts
+
 
 def message_sentiment_chart(messages_df, filtered_channels):
     messages_df = messages_df[messages_df['channel'].isin(filtered_channels)].copy()
